@@ -17,7 +17,7 @@ AROME is already a high-resolution (1.3 km) mesoscale model that captures coasta
 | Source | What we get | How |
 |---|---|---|
 | Météo-France open API | AROME forecast: wind speed, direction, gust, pressure, temp | REST API (portail-api.meteofrance.fr), GRIB2 / JSON |
-| Windguru weather stations | Observed wind speed, direction, timestamp per station | Windguru station upload endpoint (we own the stations) |
+| Windguru weather stations | Observed wind speed, direction, timestamp per station | Windguru station backend |
 
 AROME covers the UK south coast / Channel domain. Forecasts run every 3 h out to +42 h. We pull the fields at the grid point nearest each station.
 
