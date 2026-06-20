@@ -1,0 +1,20 @@
+[project]
+name = "hyperlocal-windguru"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "cfgrib>=0.9.15.1",
+    "cryptography>=49.0.0",
+    "ecmwflibs>=0.7.0",
+    "ipykernel>=7.3.0",
+    "jupyterlab>=4.6.0",
+    "matplotlib>=3.11.0",
+    "nbconvert>=7.17.1",
+    "nbformat>=5.10.4",
+    "pandas>=3.0.3",
+    "pyarrow>=24.0.0",
+    "requests>=2.34.2",
+    "scikit-learn>=1.9.0",
+    "torch>=2.12.1",
+    "xarray>=2026.4.0",
+]
