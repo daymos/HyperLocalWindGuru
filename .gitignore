@@ -8,7 +8,5 @@ scripts/mf_token.bin
 __pycache__/
 *.pyc
 
-# Generated forecast output
-
 # macOS
 .DS_Store
