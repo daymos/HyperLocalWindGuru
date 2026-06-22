@@ -15,19 +15,23 @@ def comparison_table(data, corrected: dict, target: str = "wind") -> pd.DataFram
     `corrected` maps model name -> corrected forecast array (already restricted to
     the validation windows). `target` is 'wind' or 'gust'.
     """
-    va = data.val_idx
+    val_idx = data.val_idx
     if target == "wind":
-        truth, arome, pers = data.OW[va], data.Aw[va], data.Pw[va]
+        truth = data.observed_wind[val_idx]
+        arome = data.arome_forecast_wind[val_idx]
+        persistence = data.persistence_wind[val_idx]
     else:
-        truth, arome, pers = data.OG[va], data.Ag[va], data.Pg[va]
+        truth = data.observed_gust[val_idx]
+        arome = data.arome_forecast_gust[val_idx]
+        persistence = data.persistence_gust[val_idx]
 
-    cols = {
+    columns = {
         "AROME_raw": perlead_rmse(arome, truth),
-        "persistence": perlead_rmse(pers, truth),
+        "persistence": perlead_rmse(persistence, truth),
     }
     for name, pred in corrected.items():
-        cols[name] = perlead_rmse(pred, truth)
+        columns[name] = perlead_rmse(pred, truth)
 
-    table = pd.DataFrame(cols, index=np.arange(1, data.F + 1))
+    table = pd.DataFrame(columns, index=np.arange(1, data.horizon_hours + 1))
     table.index.name = "lead_h"
     return table

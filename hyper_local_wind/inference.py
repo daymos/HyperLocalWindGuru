@@ -12,36 +12,39 @@ def predict(model, data, indices, channels: str) -> dict:
     corrected = AROME forecast + predicted residual (de-standardized).
     Returns {'wind': (n, F), 'gust': (n, F), 'residual': (n, F, 2)}.
     """
-    seq_idx, fut_idx = data.channel_indices(channels)
-    sel = torch.tensor(np.asarray(indices))
+    history_idx, future_idx = data.channel_indices(channels)
+    selected = torch.tensor(np.asarray(indices))
     model.eval()
     with torch.no_grad():
-        pred_std = model(data.Xh[sel][:, :, seq_idx], data.Xf[sel][:, :, fut_idx]).numpy()
-    residual = pred_std * data.y_std + data.y_mean        # back to knots
+        residual_std = model(
+            data.history_features[selected][:, :, history_idx],
+            data.future_features[selected][:, :, future_idx],
+        ).numpy()
+    residual = residual_std * data.residual_std + data.residual_mean   # back to knots
     return {
-        "wind": data.Aw[indices] + residual[:, :, 0],
-        "gust": data.Ag[indices] + residual[:, :, 1],
+        "wind": data.arome_forecast_wind[indices] + residual[:, :, 0],
+        "gust": data.arome_forecast_gust[indices] + residual[:, :, 1],
         "residual": residual,
     }
 
 
 def save_model(model, data, channels: str, path) -> None:
     """Persist weights + the channel/scaler metadata needed to run inference later."""
-    seq_idx, fut_idx = data.channel_indices(channels)
+    history_idx, future_idx = data.channel_indices(channels)
     torch.save({
         "state_dict": model.state_dict(),
         "channels": channels,
-        "seq_names": data.seq_names,
-        "fut_names": data.fut_names,
-        "n_seq": len(seq_idx),
-        "n_fut": len(fut_idx),
+        "history_feature_names": data.history_feature_names,
+        "future_feature_names": data.future_feature_names,
+        "n_history_features": len(history_idx),
+        "n_future_features": len(future_idx),
         "hidden": model.encoder.hidden_size,
-        "H": data.H,
-        "F": data.F,
+        "history_hours": data.history_hours,
+        "horizon_hours": data.horizon_hours,
         "scalers": {
-            "seq_mean": data.seq_mean, "seq_std": data.seq_std,
-            "fut_mean": data.fut_mean, "fut_std": data.fut_std,
-            "y_mean": data.y_mean, "y_std": data.y_std,
+            "history_mean": data.history_mean, "history_std": data.history_std,
+            "future_mean": data.future_mean, "future_std": data.future_std,
+            "residual_mean": data.residual_mean, "residual_std": data.residual_std,
         },
     }, path)
 
@@ -49,7 +52,7 @@ def save_model(model, data, channels: str, path) -> None:
 def load_model(path):
     """Reconstruct a model + its metadata dict from a checkpoint saved by save_model."""
     ckpt = torch.load(path, weights_only=False)
-    model = Seq2SeqCorrector(ckpt["n_seq"], ckpt["n_fut"], ckpt["hidden"])
+    model = Seq2SeqCorrector(ckpt["n_history_features"], ckpt["n_future_features"], ckpt["hidden"])
     model.load_state_dict(ckpt["state_dict"])
     model.eval()
     return model, ckpt
