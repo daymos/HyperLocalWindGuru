@@ -1,0 +1,12 @@
+# Secrets — Météo-France API key, never commit
+mf_token.bin
+scripts/mf_token.bin
+.env
+
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
